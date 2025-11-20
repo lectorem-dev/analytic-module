@@ -1,0 +1,47 @@
+name: "${COMPOSE_PROJECT_NAME}:dev-analytics"
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT}:8123"   # HTTP
+      - "${CLICKHOUSE_TCP_PORT}:9000"    # Native TCP
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    restart: unless-stopped
+    networks:
+      - dev-net
+
+  analytic-module:
+    build: .
+    container_name: analytic-module
+    ports:
+      - "${ANALYTIC_MODULE_PORT}:8080"
+    depends_on:
+      - clickhouse
+    networks:
+      - dev-net
+
+  ch-ui:
+    image: ghcr.io/caioricciuti/ch-ui:latest
+    container_name: clickhouse-ui
+    ports:
+      - "${CH_UI_PORT}:5521"
+    environment:
+      VITE_CLICKHOUSE_URL: ${CH_UI_URL}
+      VITE_CLICKHOUSE_USER: ${CH_UI_USER}
+      VITE_CLICKHOUSE_PASS: ${CH_UI_PASS}
+    depends_on:
+      - clickhouse
+    networks:
+      - dev-net
+
+networks:
+  dev-net:
+    driver: bridge
