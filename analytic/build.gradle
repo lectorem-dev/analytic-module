@@ -1,0 +1,18 @@
+dependencies {
+    // --- Spring Core ---
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // --- WebFlux ---
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // --- Jackson ---
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // --- ClickHouse ---
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'com.clickhouse:clickhouse-jdbc:0.8.6'
+
+    // --- Lombok ---
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+}
