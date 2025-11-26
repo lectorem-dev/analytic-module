@@ -11,7 +11,7 @@ services:
       - "9092:9092"
       - "9093:9093"
     environment:
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
 
       # --- Required KRaft roles ---
       KAFKA_PROCESS_ROLES: broker,controller
@@ -25,10 +25,6 @@ services:
 
       # --- Cluster ---
       KAFKA_CLUSTER_ID: "dev-cluster"
-
-      # 🔥 УБРАНЫ ВСЕ AUTHORISER-ПЕРЕМЕННЫЕ!
-      # Kafka 4.x сама включает StandardAuthorizer.
-      # НИЧЕГО НЕ ДОБАВЛЯТЬ.
 
     healthcheck:
       test: [ "CMD", "bash", "-c", "echo > /dev/tcp/kafka/9092" ]
@@ -68,6 +64,22 @@ services:
     container_name: analytic
     ports:
       - "8001:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ---------------------------------------------------------------------------
+  # 🟡 Simulator module
+  # ---------------------------------------------------------------------------
+  simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: simulator
+    ports:
+      - "8002:8080"
     depends_on:
       kafka:
         condition: service_healthy
