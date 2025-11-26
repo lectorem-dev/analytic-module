@@ -1,47 +1,117 @@
-name: "${COMPOSE_PROJECT_NAME}:dev-analytics"
+name: dev-analytics
 
 services:
+  # ---------------------------------------------------------------------------
+  # 🟣 OFFICIAL APACHE KAFKA (KRaft mode)
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+      # --- Required KRaft roles ---
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+
+      # --- Listeners ---
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+
+      # --- Cluster ---
+      KAFKA_CLUSTER_ID: "dev-cluster"
+
+      # 🔥 УБРАНЫ ВСЕ AUTHORISER-ПЕРЕМЕННЫЕ!
+      # Kafka 4.x сама включает StandardAuthorizer.
+      # НИЧЕГО НЕ ДОБАВЛЯТЬ.
+
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "echo > /dev/tcp/kafka/9092" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - app-network
+
+
+  # ---------------------------------------------------------------------------
+  # 🟦 Kafka UI (от Provectus) — лучший UI на сегодня
+  # ---------------------------------------------------------------------------
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ---------------------------------------------------------------------------
+  # 🟡 Analytics module
+  # ---------------------------------------------------------------------------
+  analytic:
+    build:
+      context: ./analytic
+      dockerfile: Dockerfile
+    container_name: analytic
+    ports:
+      - "8001:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ---------------------------------------------------------------------------
+  # 🟢 ClickHouse
+  # ---------------------------------------------------------------------------
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     container_name: clickhouse
     ports:
-      - "${CLICKHOUSE_HTTP_PORT}:8123"   # HTTP
-      - "${CLICKHOUSE_TCP_PORT}:9000"    # Native TCP
+      - "8123:8123"
+      - "9000:9000"
     environment:
-      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
-      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_USER=clickhouse
+      - CLICKHOUSE_PASSWORD=root
     ulimits:
       nofile:
         soft: 262144
         hard: 262144
     restart: unless-stopped
     networks:
-      - dev-net
+      - app-network
 
-  analytic-module:
-    build: .
-    container_name: analytic-module
-    ports:
-      - "${ANALYTIC_MODULE_PORT}:8080"
-    depends_on:
-      - clickhouse
-    networks:
-      - dev-net
-
+  # ---------------------------------------------------------------------------
+  # 🟤 ClickHouse UI
+  # ---------------------------------------------------------------------------
   ch-ui:
     image: ghcr.io/caioricciuti/ch-ui:latest
-    container_name: clickhouse-ui
+    container_name: ch-ui
     ports:
-      - "${CH_UI_PORT}:5521"
+      - "5521:5521"
     environment:
-      VITE_CLICKHOUSE_URL: ${CH_UI_URL}
-      VITE_CLICKHOUSE_USER: ${CH_UI_USER}
-      VITE_CLICKHOUSE_PASS: ${CH_UI_PASS}
-    depends_on:
-      - clickhouse
+      VITE_CLICKHOUSE_URL: "http://localhost:8123"
+      VITE_CLICKHOUSE_USER: "clickhouse"
+      VITE_CLICKHOUSE_PASS: "root"
     networks:
-      - dev-net
+      - app-network
 
+# ---------------------------------------------------------------------------
+# Network
+# ---------------------------------------------------------------------------
 networks:
-  dev-net:
+  app-network:
     driver: bridge
