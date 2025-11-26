@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import ru.ya.analytic.adapters.in.model.RequestedEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,35 +19,24 @@ public class KafkaConsumerConfig {
     private final String groupId = "analytics-service";
 
     @Bean
-    public ConsumerFactory<String, RequestedEvent> consumerFactory() {
+    public ConsumerFactory<String, Object> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
 
-        // JsonDeserializer
-        JsonDeserializer<RequestedEvent> deserializer = new JsonDeserializer<>(RequestedEvent.class);
-        deserializer.addTrustedPackages("ru.ya.analytic.adapters.in.model"); // <--- важно!
+        JsonDeserializer<Object> deserializer = new JsonDeserializer<>();
+        deserializer.addTrustedPackages("ru.ya.analytic.adapters.in.model", "ru.ya.simulator.domain");
 
-        return new DefaultKafkaConsumerFactory<>(
-                props,
-                new StringDeserializer(),
-                deserializer
-        );
+        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, RequestedEvent> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, RequestedEvent> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setMissingTopicsFatal(false); // если топика нет — не падает
-        factory.setContainerCustomizer(container -> {
-            container.getContainerProperties().setPollTimeout(3000);
-            container.getContainerProperties().setIdleEventInterval(15000L);
-        });
+        factory.setMissingTopicsFatal(false);
         return factory;
     }
-
 }
