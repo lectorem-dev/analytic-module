@@ -2,3 +2,4 @@ rootProject.name = 'analytic-module'
 
 include 'analytic'
 include 'simulator'
+include 'libs-analytic'
