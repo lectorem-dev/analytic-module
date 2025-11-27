@@ -12,4 +12,7 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // --- Libs ---
+    implementation project(':libs-analytic')
 }

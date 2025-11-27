@@ -4,12 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ru.ya.analytic.adapters.in.model.ReferedEvent;
-import ru.ya.analytic.adapters.in.model.RequestedEvent;
 import ru.ya.analytic.application.out.LoadDataPort;
+import ru.ya.libs.model.ReferedEvent;
+import ru.ya.libs.model.RequestedEvent;
 
 import java.sql.Date;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -29,37 +28,29 @@ public class DataLoadClickHouseRepository implements LoadDataPort {
         """;
 
     @Override
-    public boolean loadRequested(List<RequestedEvent> events) {
-        log.debug("Saving {} requested events", events.size());
+    public boolean loadRequested(RequestedEvent event) {
+        log.debug("Saving RequestedEvent: {}", event);
 
-        clickHouseJdbcTemplate.batchUpdate(
+        clickHouseJdbcTemplate.update(
                 SQL_INSERT_REQUESTED,
-                events,
-                1000,
-                (ps, event) -> {
-                    ps.setDate(1, Date.valueOf(event.getEventDate()));
-                    ps.setString(2, event.getCid().toString());
-                    ps.setString(3, event.getMid().toString());
-                    ps.setInt(4, event.getCount());
-                }
+                Date.valueOf(event.getEventDate()),
+                event.getCategoryId().toString(),
+                event.getManufactureId().toString(),
+                event.getCount()
         );
 
         return true;
     }
 
     @Override
-    public boolean loadReferred(List<ReferedEvent> events) {
-        log.debug("Saving {} referred events", events.size());
+    public boolean loadReferred(ReferedEvent event) {
+        log.debug("Saving ReferedEvent: {}", event);
 
-        clickHouseJdbcTemplate.batchUpdate(
+        clickHouseJdbcTemplate.update(
                 SQL_INSERT_REFERED,
-                events,
-                1000,
-                (ps, event) -> {
-                    ps.setDate(1, Date.valueOf(event.getEventDate()));
-                    ps.setString(2, event.getMid().toString());
-                    ps.setInt(3, event.getCount());
-                }
+                Date.valueOf(event.getEventDate()),
+                event.getManufactureId().toString(),
+                event.getCount()
         );
 
         return true;

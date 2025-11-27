@@ -1,4 +1,4 @@
-package ru.ya.analytic.adapters.in.model;
+package ru.ya.analytic.adapters.in.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

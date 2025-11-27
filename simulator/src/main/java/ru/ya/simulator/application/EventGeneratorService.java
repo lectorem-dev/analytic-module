@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ru.ya.simulator.domain.ReferedEvent;
-import ru.ya.simulator.domain.RequestedEvent;
+import ru.ya.libs.model.ReferedEvent;
+import ru.ya.libs.model.RequestedEvent;
 import ru.ya.simulator.infrastructure.kafka.KafkaEventPublisher;
 
 import java.time.LocalDate;

@@ -1,6 +1,6 @@
 package ru.ya.analytic.application.in;
 
-import ru.ya.analytic.adapters.in.model.AnalyticsResponse;
+import ru.ya.analytic.adapters.in.dto.AnalyticsResponse;
 
 import java.util.UUID;
 

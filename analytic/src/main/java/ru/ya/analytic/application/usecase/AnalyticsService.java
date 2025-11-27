@@ -2,7 +2,7 @@ package ru.ya.analytic.application.usecase;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.ya.analytic.adapters.in.model.AnalyticsResponse;
+import ru.ya.analytic.adapters.in.dto.AnalyticsResponse;
 import ru.ya.analytic.application.in.GetAnalyticsUseCase;
 import ru.ya.analytic.application.out.AnalyticsPort;
 

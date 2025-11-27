@@ -1,11 +1,9 @@
 package ru.ya.analytic.application.out;
 
-import ru.ya.analytic.adapters.in.model.ReferedEvent;
-import ru.ya.analytic.adapters.in.model.RequestedEvent;
-
-import java.util.List;
+import ru.ya.libs.model.ReferedEvent;
+import ru.ya.libs.model.RequestedEvent;
 
 public interface LoadDataPort {
-    boolean loadRequested(List<RequestedEvent> events);
-    boolean loadReferred(List<ReferedEvent> events);
+    boolean loadRequested(RequestedEvent events);
+    boolean loadReferred(ReferedEvent events);
 }

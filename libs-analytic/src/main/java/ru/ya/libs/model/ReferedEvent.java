@@ -1,4 +1,4 @@
-package ru.ya.analytic.adapters.in.model;
+package ru.ya.libs.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReferedEvent {
-    private UUID mid;
+    private UUID manufactureId;
     private Integer count;
     private LocalDate eventDate;
 }
