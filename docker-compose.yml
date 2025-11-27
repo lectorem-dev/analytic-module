@@ -2,7 +2,7 @@ name: dev-analytics
 
 services:
   # ---------------------------------------------------------------------------
-  # 🟤 Zookeeper (для классической Kafka)
+  # Zookeeper (для классической Kafka)
   # ---------------------------------------------------------------------------
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -16,7 +16,7 @@ services:
       - app-network
 
   # ---------------------------------------------------------------------------
-  # 🟡 Kafka (Classic mode с Zookeeper)
+  # Kafka (Classic mode с Zookeeper)
   # ---------------------------------------------------------------------------
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -26,21 +26,29 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
     depends_on:
       - zookeeper
-    networks:
-      - app-network
+
     healthcheck:
-      test: ["CMD", "bash", "-c", "echo > /dev/tcp/kafka/9092"]
+      test: [ "CMD", "bash", "-c", "echo > /dev/tcp/kafka/9092" ]
       interval: 10s
       timeout: 5s
       retries: 10
 
+    networks:
+      - app-network
+
   # ---------------------------------------------------------------------------
-  # 🟦 Kafka UI (от Provectus)
+  # Kafka UI (от Provectus)
   # ---------------------------------------------------------------------------
   kafka-ui:
     container_name: kafka-ui
@@ -58,7 +66,7 @@ services:
       - app-network
 
   # ---------------------------------------------------------------------------
-  # 🟡 Analytics module
+  # Analytics module
   # ---------------------------------------------------------------------------
   analytic:
     build:
@@ -74,7 +82,7 @@ services:
       - app-network
 
   # ---------------------------------------------------------------------------
-  # 🟡 Simulator module
+  # Simulator module
   # ---------------------------------------------------------------------------
   simulator:
     build:
@@ -90,7 +98,7 @@ services:
       - app-network
 
   # ---------------------------------------------------------------------------
-  # 🟢 ClickHouse
+  # ClickHouse
   # ---------------------------------------------------------------------------
   clickhouse:
     image: clickhouse/clickhouse-server:latest
@@ -110,7 +118,7 @@ services:
       - app-network
 
   # ---------------------------------------------------------------------------
-  # 🟤 ClickHouse UI
+  # ClickHouse UI
   # ---------------------------------------------------------------------------
   ch-ui:
     image: ghcr.io/caioricciuti/ch-ui:latest
