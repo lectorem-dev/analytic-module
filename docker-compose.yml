@@ -70,7 +70,7 @@ services:
   # ---------------------------------------------------------------------------
   analytic:
     build:
-      context: ./analytic
+      context: ./modules/analytic
       dockerfile: Dockerfile
     container_name: analytic
     ports:
@@ -86,7 +86,7 @@ services:
   # ---------------------------------------------------------------------------
   simulator:
     build:
-      context: ./simulator
+      context: ./modules/analytic
       dockerfile: Dockerfile
     container_name: simulator
     ports:
