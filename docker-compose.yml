@@ -86,7 +86,7 @@ services:
   # ---------------------------------------------------------------------------
   simulator:
     build:
-      context: ./modules/analytic
+      context: ./modules/simulator
       dockerfile: Dockerfile
     container_name: simulator
     ports:
