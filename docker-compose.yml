@@ -100,18 +100,18 @@ services:
   # ---------------------------------------------------------------------------
   # Frontend (Vite + React + Nginx)
   # ---------------------------------------------------------------------------
-#  frontend:
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#    container_name: analytics-frontend
-#    ports:
-#      - "5173:5173"
-#    depends_on:
-#      - analytic
-#      - simulator
-#    networks:
-#      - app-network
+  frontend:
+    build:
+      context: ./modules/analytic-monitor
+      dockerfile: Dockerfile
+    container_name: analytic-monitor
+    ports:
+      - "5173:5173"
+    depends_on:
+      - analytic
+      - simulator
+    networks:
+      - app-network
 
   # ---------------------------------------------------------------------------
   # ClickHouse
