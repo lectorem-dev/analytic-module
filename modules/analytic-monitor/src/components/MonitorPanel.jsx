@@ -9,6 +9,7 @@ export default function MonitorPanel() {
     const [intervalMs, setIntervalMs] = useState(2000);
 
     const [data, setData] = useState(null);
+    const [error, setError] = useState(null); // состояние для ошибок
     const timerRef = useRef(null);
 
     const startPolling = () => {
@@ -24,9 +25,32 @@ export default function MonitorPanel() {
                         "X-API-KEY": apiKey
                     }
                 });
+
                 setData(response.data);
+                setError(null); // сброс ошибки при успешном ответе
             } catch (err) {
                 console.error(err);
+
+                // Формируем текст ошибки для вывода
+                if (err.response) {
+                    // Сервер вернул статус != 2xx
+                    const status = err.response.status;
+                    if (status === 403) {
+                        setError("Ошибка 403: Доступ запрещён. Проверьте API-ключ.");
+                    } else if (status === 500) {
+                        setError("Ошибка 500: Внутренняя ошибка сервера.");
+                    } else if (status === 400) {
+                        setError("Ошибка 500: Bead request (проверьте корректность ID).");
+                    } else {
+                        setError(`Ошибка ${status}: ${err.response.statusText}`);
+                    }
+                } else if (err.request) {
+                    // Запрос был сделан, но ответа нет
+                    setError("Ошибка сети: сервер не отвечает.");
+                } else {
+                    // Другая ошибка
+                    setError("Произошла ошибка: " + err.message);
+                }
             }
         }, intervalMs);
     };
@@ -84,13 +108,13 @@ export default function MonitorPanel() {
 
             <pre style={{
                 background: "#222",
-                color: "#0f0",
+                color: error ? "#f00" : "#0f0", // красный если есть ошибка, зелёный если всё ок
                 padding: 20,
                 borderRadius: 8,
                 maxHeight: 400,
                 overflowY: "auto"
             }}>
-                {data ? JSON.stringify(data, null, 2) : "Нет данных"}
+                {error ? error : (data ? JSON.stringify(data, null, 2) : "Нет данных")}
             </pre>
         </div>
     );
