@@ -70,7 +70,7 @@ services:
   # ---------------------------------------------------------------------------
   analytic:
     build:
-      context: ./analytic
+      context: ./modules/analytic
       dockerfile: Dockerfile
     container_name: analytic
     ports:
@@ -86,7 +86,7 @@ services:
   # ---------------------------------------------------------------------------
   simulator:
     build:
-      context: ./simulator
+      context: ./modules/simulator
       dockerfile: Dockerfile
     container_name: simulator
     ports:
@@ -94,6 +94,22 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    networks:
+      - app-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend (Vite + React + Nginx)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./modules/analytic-monitor
+      dockerfile: Dockerfile
+    container_name: analytic-monitor
+    ports:
+      - "5173:5173"
+    depends_on:
+      - analytic
+      - simulator
     networks:
       - app-network
 
