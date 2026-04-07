@@ -47,6 +47,7 @@ public class SimulationStateService {
     @PostConstruct
     public synchronized void initializeState() {
         config = configProvider.getConfig();
+        scenario = resolveDefaultScenario();
         currentPopularity = new HashMap<>();
         config.getPopularityMap().forEach((manufactureId, popularity) ->
                 currentPopularity.put(manufactureId, popularity.doubleValue())
@@ -150,8 +151,9 @@ public class SimulationStateService {
             double trendBoost = Objects.equals(manufactureId, trendingManufactureId)
                     ? basePopularity * scenario.getTrendStrength()
                     : 0.0;
+            double shock = buildPopularityShock(basePopularity);
 
-            double next = current + meanReversion + noise + trendBoost;
+            double next = current + meanReversion + noise + trendBoost + shock;
             double maxPopularity = basePopularity * scenario.getMaxPopularityFactor();
 
             currentPopularity.put(manufactureId, clamp(next, MIN_POPULARITY, maxPopularity));
@@ -299,7 +301,32 @@ public class SimulationStateService {
             factor *= 1.8;
         }
 
+        factor *= applyTrafficShock();
+
         return Math.max(1, (int) Math.round(baseTraffic * factor));
+    }
+
+    private double buildPopularityShock(double basePopularity) {
+        if (random.nextDouble() >= props.getPopularityShockProbability()) {
+            return 0.0;
+        }
+
+        double amplitude = basePopularity * props.getPopularityShockMultiplier();
+        return random.nextBoolean() ? amplitude : -amplitude * 0.75;
+    }
+
+    private double applyTrafficShock() {
+        double roll = random.nextDouble();
+
+        if (roll < props.getTrafficSurgeProbability()) {
+            return props.getTrafficSurgeMultiplier() * (0.85 + random.nextDouble() * 0.55);
+        }
+
+        if (roll < props.getTrafficSurgeProbability() + props.getTrafficDropProbability()) {
+            return props.getTrafficDropMultiplier() * (0.75 + random.nextDouble() * 0.30);
+        }
+
+        return 1.0;
     }
 
     private List<Integer> distributeTraffic(int totalViews, int itemCount) {
@@ -430,6 +457,20 @@ public class SimulationStateService {
 
         result.replaceAll((manufactureId, categoryIds) -> List.copyOf(categoryIds));
         return result;
+    }
+
+    private SimulationScenario resolveDefaultScenario() {
+        String rawScenario = props.getDefaultScenario();
+        if (rawScenario == null || rawScenario.isBlank()) {
+            return SimulationScenario.TRENDING;
+        }
+
+        try {
+            return SimulationScenario.from(rawScenario);
+        } catch (IllegalArgumentException exception) {
+            log.warn("Unknown default scenario '{}', fallback to TRENDING", rawScenario);
+            return SimulationScenario.TRENDING;
+        }
     }
 
     private SimulationStateSnapshot buildStateSnapshot() {
