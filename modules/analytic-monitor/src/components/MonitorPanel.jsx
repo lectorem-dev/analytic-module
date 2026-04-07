@@ -420,16 +420,17 @@ export default function MonitorPanel() {
                 </select>
             </div>
 
-            <div style={formRowStyle}>
-                <label style={labelStyle}>Интервал опроса (мс):</label>
-                <input
-                    type="number"
-                    value={intervalMs}
-                    onChange={(e) => setIntervalMs(Number(e.target.value))}
-                    disabled={connectionMode !== "rest"}
-                    style={smallInputStyle}
-                />
-            </div>
+            {connectionMode === "rest" && (
+                <div style={formRowStyle}>
+                    <label style={labelStyle}>Интервал опроса (мс):</label>
+                    <input
+                        type="number"
+                        value={intervalMs}
+                        onChange={(e) => setIntervalMs(Number(e.target.value))}
+                        style={smallInputStyle}
+                    />
+                </div>
+            )}
 
             <div style={{ marginBottom: 10 }}>
                 <button onClick={handleStart} style={startButtonStyle}>{isRunning ? "Restart" : "Start"}</button>

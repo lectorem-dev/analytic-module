@@ -14,4 +14,11 @@ public class SimulatorProperties {
     private String popularityRange;
     private long generateIntervalMs;
     private double clickProbability;
+    private int activeCategoriesPerTick;
+    private int minTrafficPerTick;
+    private int maxTrafficPerTick;
+    private int promoDurationTicks;
+    private double promoBoostMultiplier;
+    private double autoPromoProbability;
+    private int trendDurationTicks;
 }

@@ -12,4 +12,6 @@ public class GeneratorConfig {
     private List<UUID> manufacturers;
     private Map<UUID, List<UUID>> categoryProducts;
     private Map<UUID, Integer> popularityMap;
+    private Map<UUID, Integer> categoryDemandMap;
+    private Map<UUID, Double> conversionBiasMap;
 }

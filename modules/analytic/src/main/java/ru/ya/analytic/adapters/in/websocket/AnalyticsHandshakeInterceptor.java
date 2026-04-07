@@ -1,6 +1,7 @@
 package ru.ya.analytic.adapters.in.websocket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,9 +30,9 @@ public class AnalyticsHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(
             ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
-            Map<String, Object> attributes
+            @NonNull ServerHttpResponse response,
+            @NonNull WebSocketHandler wsHandler,
+            @NonNull Map<String, Object> attributes
     ) {
         var params = UriComponentsBuilder.fromUri(request.getURI()).build().getQueryParams();
         String key = request.getHeaders().getFirst(API_KEY_HEADER);
@@ -66,9 +67,9 @@ public class AnalyticsHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public void afterHandshake(
-            ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
+            @NonNull ServerHttpRequest request,
+            @NonNull ServerHttpResponse response,
+            @NonNull WebSocketHandler wsHandler,
             Exception exception
     ) {
         // No-op: the subscription context is already stored in session attributes.

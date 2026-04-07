@@ -22,38 +22,41 @@ public class GeneratorConfigInitializer {
     public void init() {
         config = new GeneratorConfig();
 
-        // Категории
         List<UUID> cids = IntStream.range(0, props.getCategories())
                 .mapToObj(i -> UUID.randomUUID())
                 .toList();
         config.setCategories(cids);
 
-        // Производители
         List<UUID> mids = IntStream.range(0, props.getManufacturers())
                 .mapToObj(i -> UUID.randomUUID())
                 .toList();
         config.setManufacturers(mids);
 
-        // Извлекаем диапазон популярности
         String[] pr = props.getPopularityRange().split("-");
         int minPop = Integer.parseInt(pr[0]);
         int maxPop = Integer.parseInt(pr[1]);
 
-        // Веса популярности производителей
         Map<UUID, Integer> popularity = new HashMap<>();
+        Map<UUID, Double> conversionBias = new HashMap<>();
         for (UUID mid : mids) {
             popularity.put(mid, random.nextInt(maxPop - minPop + 1) + minPop);
+            conversionBias.put(mid, 0.70 + random.nextDouble() * 0.75);
         }
         config.setPopularityMap(popularity);
+        config.setConversionBiasMap(conversionBias);
 
-        // Привязка товаров к категориям
         Map<UUID, List<UUID>> catMapping = new HashMap<>();
+        Map<UUID, Integer> categoryDemand = new HashMap<>();
+        int productsPerCategory = Math.min(props.getProductsPerCategory(), mids.size());
+
         for (UUID cid : cids) {
-            List<UUID> midsForCat = random.ints(props.getProductsPerCategory(), 0, mids.size())
-                    .mapToObj(mids::get)
-                    .toList();
+            List<UUID> shuffled = new ArrayList<>(mids);
+            Collections.shuffle(shuffled, random);
+            List<UUID> midsForCat = List.copyOf(shuffled.subList(0, productsPerCategory));
             catMapping.put(cid, midsForCat);
+            categoryDemand.put(cid, 80 + random.nextInt(81));
         }
         config.setCategoryProducts(catMapping);
+        config.setCategoryDemandMap(categoryDemand);
     }
 }

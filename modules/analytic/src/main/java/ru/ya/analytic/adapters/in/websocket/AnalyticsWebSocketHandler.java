@@ -3,6 +3,7 @@ package ru.ya.analytic.adapters.in.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -53,13 +54,13 @@ public class AnalyticsWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         unregister(session);
         log.info("WebSocket disconnected: sessionId={}, status={}", session.getId(), status);
     }
 
     @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) {
+    public void handleTransportError(WebSocketSession session, @NonNull Throwable exception) {
         log.warn("WebSocket transport error for session {}", session.getId(), exception);
         unregister(session);
         closeSilently(session, CloseStatus.SERVER_ERROR);
