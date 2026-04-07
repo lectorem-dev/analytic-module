@@ -7,6 +7,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import ru.ya.analytic.application.usecase.AnalyticsWebSocketPublisher;
 import ru.ya.analytic.application.in.LoadDataUseCase;
 import ru.ya.libs.model.ReferedEvent;
 import ru.ya.libs.model.RequestedEvent;
@@ -20,6 +21,7 @@ public class AnalyticsKafkaListener {
 
     private final ObjectMapper objectMapper;
     private final LoadDataUseCase loadDataUseCase;
+    private final AnalyticsWebSocketPublisher analyticsWebSocketPublisher;
 
     @EventListener(ContextRefreshedEvent.class)
     public void startListeners() {
@@ -35,7 +37,9 @@ public class AnalyticsKafkaListener {
 
         try {
             RequestedEvent event = objectMapper.convertValue(message, RequestedEvent.class);
-            loadDataUseCase.loadRequested(event);
+            if (loadDataUseCase.loadRequested(event)) {
+                analyticsWebSocketPublisher.scheduleSnapshot(event.getManufactureId());
+            }
         } catch (Exception e) {
             log.error("Error processing RequestedEvent: {}", message, e);
         }
@@ -50,7 +54,9 @@ public class AnalyticsKafkaListener {
 
         try {
             ReferedEvent event = objectMapper.convertValue(message, ReferedEvent.class);
-            loadDataUseCase.loadReferred(event);
+            if (loadDataUseCase.loadReferred(event)) {
+                analyticsWebSocketPublisher.scheduleSnapshot(event.getManufactureId());
+            }
         } catch (Exception e) {
             log.error("Error processing ReferedEvent: {}", message, e);
         }

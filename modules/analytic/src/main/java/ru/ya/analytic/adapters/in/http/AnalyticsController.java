@@ -18,9 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api")
 @Tag(name = "Analytics API", description = "Эндпоинты для получения аналитики по товарам")
 public class AnalyticsController {
-
     private static final Logger log = LoggerFactory.getLogger(AnalyticsController.class);
-
     private final GetAnalyticsUseCase useCase;
 
     @Value("${api.key}")
@@ -43,7 +41,10 @@ public class AnalyticsController {
     }
 
     @GetMapping("/{manufactureId}/show")
-    @Operation(summary = "Показать всю аналитику для товара", description = "Возвращает объект с averageRank, globalCount, referCount")
+    @Operation(
+            summary = "Показать всю аналитику для товара",
+            description = "Возвращает объект с averageRank, globalCount, referCount"
+    )
     public ResponseEntity<AnalyticsResponse> getAnalyticShowDTO(
             @Parameter(description = "UUID товара") @PathVariable UUID manufactureId,
             @RequestHeader(name = "X-API-KEY", required = false) String key

@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalyticsResponse {
+public class AnalyticsResponse{
     private String averageRank; // Средняя позиция в каталоге
     private String globalCount; // Показы в поиске и каталоге (попадал в выборку)
     private String referCount;  // Переходы на карточки
 }
+
