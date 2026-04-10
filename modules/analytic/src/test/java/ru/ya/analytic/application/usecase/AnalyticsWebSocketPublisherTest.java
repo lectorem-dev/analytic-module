@@ -104,4 +104,22 @@ class AnalyticsWebSocketPublisherTest {
         verify(firstFuture).cancel(false);
         verify(secondFuture, never()).cancel(false);
     }
+
+    @Test
+    void scheduledRunnableSkipsBroadcastWhenUseCaseFails() {
+        UUID manufactureId = UUID.randomUUID();
+        ScheduledFuture<?> future = org.mockito.Mockito.mock(ScheduledFuture.class);
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+
+        when(analyticsWebSocketHandler.hasSubscribers(manufactureId)).thenReturn(true);
+        when(analyticsUseCase.getAnalyticShowDTO(manufactureId)).thenThrow(new IllegalStateException("boom"));
+        doReturn(future)
+                .when(analyticsWebSocketTaskScheduler)
+                .schedule(runnableCaptor.capture(), any(Instant.class));
+
+        publisher.scheduleSnapshot(manufactureId);
+        runnableCaptor.getValue().run();
+
+        verify(analyticsWebSocketHandler, never()).broadcast(any());
+    }
 }

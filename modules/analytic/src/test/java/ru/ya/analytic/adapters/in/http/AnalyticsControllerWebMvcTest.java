@@ -67,6 +67,40 @@ class AnalyticsControllerWebMvcTest {
     }
 
     @Test
+    void avgEndpointReturnsAverageRankForValidApiKey() throws Exception {
+        UUID manufactureId = UUID.randomUUID();
+        when(useCase.getAnalyticAvgDTO(manufactureId)).thenReturn(
+                AnalyticsResponse.builder().averageRank("6.25").build()
+        );
+
+        mockMvc.perform(get("/api/{manufactureId}/avg", manufactureId)
+                        .header("X-API-KEY", "secret"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.averageRank").value("6.25"))
+                .andExpect(jsonPath("$.globalCount").isEmpty())
+                .andExpect(jsonPath("$.referCount").isEmpty());
+
+        verify(useCase).getAnalyticAvgDTO(manufactureId);
+    }
+
+    @Test
+    void referEndpointReturnsReferCountForValidApiKey() throws Exception {
+        UUID manufactureId = UUID.randomUUID();
+        when(useCase.getAnalyticReferDTO(manufactureId)).thenReturn(
+                AnalyticsResponse.builder().referCount("11").build()
+        );
+
+        mockMvc.perform(get("/api/{manufactureId}/refer", manufactureId)
+                        .header("X-API-KEY", "secret"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.averageRank").isEmpty())
+                .andExpect(jsonPath("$.globalCount").isEmpty())
+                .andExpect(jsonPath("$.referCount").value("11"));
+
+        verify(useCase).getAnalyticReferDTO(manufactureId);
+    }
+
+    @Test
     void showEndpointReturnsForbiddenForMissingApiKey() throws Exception {
         mockMvc.perform(get("/api/{manufactureId}/show", UUID.randomUUID()))
                 .andExpect(status().isForbidden());
@@ -79,6 +113,15 @@ class AnalyticsControllerWebMvcTest {
         mockMvc.perform(get("/api/{manufactureId}/show", UUID.randomUUID())
                         .header("X-API-KEY", "wrong"))
                 .andExpect(status().isForbidden());
+
+        verifyNoInteractions(useCase);
+    }
+
+    @Test
+    void showEndpointReturnsBadRequestForInvalidUuid() throws Exception {
+        mockMvc.perform(get("/api/{manufactureId}/show", "not-a-uuid")
+                        .header("X-API-KEY", "secret"))
+                .andExpect(status().isBadRequest());
 
         verifyNoInteractions(useCase);
     }

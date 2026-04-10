@@ -90,4 +90,30 @@ class AnalyticsKafkaListenerTest {
         verify(loadDataUseCase).loadReferred(event);
         verify(analyticsWebSocketPublisher).scheduleSnapshot(manufactureId);
     }
+
+    @Test
+    void onReferredEventDoesNotScheduleSnapshotWhenLoadFails() {
+        UUID manufactureId = UUID.randomUUID();
+        ReferedEvent event = new ReferedEvent(manufactureId, 5, LocalDate.now());
+        Map<String, Object> message = Map.of("manufactureId", manufactureId.toString());
+
+        when(objectMapper.convertValue(message, ReferedEvent.class)).thenReturn(event);
+        when(loadDataUseCase.loadReferred(event)).thenReturn(false);
+
+        listener.onReferredEvent(message);
+
+        verify(loadDataUseCase).loadReferred(event);
+        verify(analyticsWebSocketPublisher, never()).scheduleSnapshot(manufactureId);
+    }
+
+    @Test
+    void onReferredEventSwallowsMappingErrors() {
+        Map<String, Object> message = Map.of("manufactureId", UUID.randomUUID().toString());
+        when(objectMapper.convertValue(message, ReferedEvent.class))
+                .thenThrow(new IllegalArgumentException("bad payload"));
+
+        listener.onReferredEvent(message);
+
+        verifyNoInteractions(loadDataUseCase, analyticsWebSocketPublisher);
+    }
 }
