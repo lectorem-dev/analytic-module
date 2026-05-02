@@ -30,4 +30,6 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
 }
